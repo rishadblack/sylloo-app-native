@@ -1,0 +1,235 @@
+{
+    "namespace": "SyllooAppNative",
+    "category": "utilities",
+    "license": "MIT",
+    "pricing": {
+        "type": "free"
+    },
+    "platforms": [
+        "android"
+    ],
+    "components": [
+        {
+            "type": "sylloo_window",
+            "element": "Rishadblack\\SyllooAppNative\\Elements\\CloudWindow",
+            "blade": "Rishadblack\\SyllooAppNative\\Components\\CloudWindow",
+            "android_renderer": "com.rishadblack.plugins.sylloo_app_native.WindowRenderer",
+            "self_closing": true,
+            "element_events": [
+                "leave",
+                "ended",
+                "navigated",
+                "failed"
+            ]
+        }
+    ],
+    "bridge_functions": [
+        {
+            "name": "Clock.Elapsed",
+            "android": "com.rishadblack.plugins.sylloo_app_native.ClockFunctions.Elapsed",
+            "android_params": [
+                "context"
+            ],
+            "description": "The running timer and the restart count, for the time proof"
+        },
+        {
+            "name": "Secret.Set",
+            "android": "com.rishadblack.plugins.sylloo_app_native.SecretFunctions.Set",
+            "android_params": [
+                "context"
+            ],
+            "description": "Keep a short secret encrypted under an Android Keystore key"
+        },
+        {
+            "name": "Secret.Get",
+            "android": "com.rishadblack.plugins.sylloo_app_native.SecretFunctions.Get",
+            "android_params": [
+                "context"
+            ],
+            "description": "Read a kept secret"
+        },
+        {
+            "name": "Secret.Delete",
+            "android": "com.rishadblack.plugins.sylloo_app_native.SecretFunctions.Delete",
+            "android_params": [
+                "context"
+            ],
+            "description": "Delete a kept secret"
+        },
+        {
+            "name": "Lock.Status",
+            "android": "com.rishadblack.plugins.sylloo_app_native.LockFunctions.Status",
+            "android_params": [
+                "context"
+            ],
+            "description": "Whether a fingerprint or face can be used"
+        },
+        {
+            "name": "Lock.Prompt",
+            "android": "com.rishadblack.plugins.sylloo_app_native.LockFunctions.Prompt",
+            "android_params": [
+                "context"
+            ],
+            "description": "Show the fingerprint / face prompt (answer: LockAnswered)"
+        },
+        {
+            "name": "Location.Fix",
+            "android": "com.rishadblack.plugins.sylloo_app_native.LocationFunctions.Fix",
+            "android_params": [
+                "context"
+            ],
+            "description": "One fresh location reading with a time limit (answer: LocationAnswered)"
+        },
+        {
+            "name": "Camera.Take",
+            "android": "com.rishadblack.plugins.sylloo_app_native.PhotoFunctions.Take",
+            "android_params": [
+                "context"
+            ],
+            "description": "Take a selfie with the face outline or a back photo, made small (answer: CameraAnswered)"
+        },
+        {
+            "name": "Qr.Scan",
+            "android": "com.rishadblack.plugins.sylloo_app_native.QrFunctions.Scan",
+            "android_params": [
+                "context"
+            ],
+            "description": "Scan a QR code with CameraX and ZXing (answer: QrAnswered)"
+        },
+        {
+            "name": "Push.Permission",
+            "android": "com.rishadblack.plugins.sylloo_app_native.PushFunctions.Permission",
+            "android_params": [
+                "context"
+            ],
+            "description": "Ask to show notices (answer: PushPermissionAnswered)"
+        },
+        {
+            "name": "Push.Token",
+            "android": "com.rishadblack.plugins.sylloo_app_native.PushFunctions.Token",
+            "android_params": [
+                "context"
+            ],
+            "description": "The Firebase token of this phone (answer: PushTokenAnswered)"
+        },
+        {
+            "name": "Push.Opened",
+            "android": "com.rishadblack.plugins.sylloo_app_native.PushFunctions.Opened",
+            "android_params": [
+                "context"
+            ],
+            "description": "The address of the tapped notice, once"
+        },
+        {
+            "name": "Sync.Schedule",
+            "android": "com.rishadblack.plugins.sylloo_app_native.SyncFunctions.Schedule",
+            "android_params": [
+                "context"
+            ],
+            "description": "Send what waits with WorkManager when online, also with the app closed"
+        },
+        {
+            "name": "Sync.Cancel",
+            "android": "com.rishadblack.plugins.sylloo_app_native.SyncFunctions.Cancel",
+            "android_params": [
+                "context"
+            ],
+            "description": "Stop the background sends"
+        },
+        {
+            "name": "Update.Install",
+            "android": "com.rishadblack.plugins.sylloo_app_native.UpdateFunctions.Install",
+            "android_params": [
+                "context"
+            ],
+            "description": "Download an APK, check its SHA-256 and open the installer (answer: UpdateAnswered)"
+        },
+        {
+            "name": "Window.Clear",
+            "android": "com.rishadblack.plugins.sylloo_app_native.WindowFunctions.Clear",
+            "android_params": [
+                "context"
+            ],
+            "description": "Remove the cloud window cookies, page storage and cache"
+        }
+    ],
+    "android": {
+        "min_version": 26,
+        "permissions": [
+            "android.permission.USE_BIOMETRIC",
+            "android.permission.CAMERA",
+            "android.permission.ACCESS_FINE_LOCATION",
+            "android.permission.ACCESS_COARSE_LOCATION",
+            "android.permission.POST_NOTIFICATIONS",
+            "android.permission.REQUEST_INSTALL_PACKAGES"
+        ],
+        "repositories": [],
+        "dependencies": {
+            "implementation": [
+                "androidx.biometric:biometric:1.1.0",
+                "com.google.guava:guava:33.3.1-android",
+                "com.google.zxing:core:3.5.3",
+                "androidx.work:work-runtime-ktx:2.10.0",
+                "com.google.firebase:firebase-messaging:24.1.0"
+            ]
+        },
+        "activities": [
+            {
+                "name": ".PhotoActivity",
+                "theme": "@android:style/Theme.Black.NoTitleBar.Fullscreen",
+                "exported": false,
+                "screenOrientation": "portrait"
+            },
+            {
+                "name": ".QrScanActivity",
+                "theme": "@android:style/Theme.Black.NoTitleBar.Fullscreen",
+                "exported": false,
+                "screenOrientation": "portrait"
+            },
+            {
+                "name": ".PushOpenActivity",
+                "theme": "@android:style/Theme.Translucent.NoTitleBar",
+                "exported": false
+            }
+        ],
+        "services": [
+            {
+                "name": ".SyllooMessagingService",
+                "exported": false,
+                "intent_filters": [
+                    {
+                        "action": "com.google.firebase.MESSAGING_EVENT"
+                    }
+                ]
+            }
+        ],
+        "receivers": [],
+        "providers": []
+    },
+    "ios": {
+        "min_version": "15.0",
+        "permissions": [],
+        "dependencies": {
+            "swift_packages": [],
+            "pods": []
+        }
+    },
+    "assets": {
+        "android": []
+    },
+    "secrets": [],
+    "events": [
+        "Rishadblack\\SyllooAppNative\\Events\\LockAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\LocationAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\CameraAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\QrAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\PushPermissionAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\PushTokenAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\PushOpened",
+        "Rishadblack\\SyllooAppNative\\Events\\UpdateAnswered"
+    ],
+    "service_provider": "Rishadblack\\SyllooAppNative\\SyllooAppNativeServiceProvider",
+    "hooks": {
+        "copy_assets": "nativephp:sylloo-app-native:copy-assets"
+    }
+}

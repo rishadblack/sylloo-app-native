@@ -1,0 +1,551 @@
+{
+  "_about": "The cloud window's address cases, checked by both WindowRules::mayShow() / WindowSession::decide() (PHP, tests/Feature/WindowTest.php) and WindowFilter (Kotlin, resources/android-tests/WindowFilterTest.kt). Change both rules together.",
+  "cases": [
+    {
+      "name": "a member page",
+      "url": "https://demo.sylloo.app/member/dashboard",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "the member root",
+      "url": "https://demo.sylloo.app/member",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "query and fragment",
+      "url": "https://demo.sylloo.app/member/sales?page=2#top",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "Livewire's calls",
+      "url": "https://demo.sylloo.app/livewire/update",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "files the pages need",
+      "url": "https://demo.sylloo.app/storage/logo.png",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "the favicon",
+      "url": "https://demo.sylloo.app/favicon.ico",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "the practice host",
+      "url": "https://practice.sylloo.app/member/sales",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "a host in capitals",
+      "url": "https://DEMO.Sylloo.app/member",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "a path that only starts like /member",
+      "url": "https://demo.sylloo.app/memberx",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "a file that only starts like the favicon",
+      "url": "https://demo.sylloo.app/favicon.icox",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "the sign-in page",
+      "url": "https://demo.sylloo.app/login",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "the business root",
+      "url": "https://demo.sylloo.app/",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "a step out of /member",
+      "url": "https://demo.sylloo.app/member/../admin",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "a step out at the end",
+      "url": "https://demo.sylloo.app/member/..",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "another site",
+      "url": "https://example.com/member",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "leave"
+    },
+    {
+      "name": "a look-alike host",
+      "url": "https://demo.sylloo.app.example.com/member",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "leave"
+    },
+    {
+      "name": "a user in the address",
+      "url": "https://someone@demo.sylloo.app/member",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "http in production",
+      "url": "http://demo.sylloo.app/member",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "http outside production",
+      "url": "http://demo.sylloo.app/member",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": true,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "mail",
+      "url": "mailto:office@example.com",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "leave"
+    },
+    {
+      "name": "a phone number",
+      "url": "tel:+8801700000000",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "leave"
+    },
+    {
+      "name": "a script address",
+      "url": "javascript:alert(1)",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "block",
+      "decide_redirect": "block"
+    },
+    {
+      "name": "a local file",
+      "url": "file:///data/data/app/database.sqlite",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "block",
+      "decide_redirect": "block"
+    },
+    {
+      "name": "an Android intent",
+      "url": "intent://scan/#Intent;scheme=zxing;end",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "block",
+      "decide_redirect": "block"
+    },
+    {
+      "name": "an employee page",
+      "url": "https://demo.sylloo.app/employee/punch",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/employee",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "a member page in the employee window",
+      "url": "https://demo.sylloo.app/member/dashboard",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/employee",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "ended"
+    }
+  ]
+}

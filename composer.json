@@ -1,0 +1,66 @@
+{
+    "name": "rishadblack/sylloo-app-native",
+    "description": "Sylloo App's phone package: the native faces of the shared screens and the small Kotlin jobs (NativePHP Mobile plugin).",
+    "type": "nativephp-plugin",
+    "license": "MIT",
+    "homepage": "https://github.com/rishadblack/sylloo-app-native",
+    "authors": [
+        {
+            "name": "S M Rishad",
+            "email": "rishad.black@gmail.com",
+            "homepage": "https://smrishad.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "nativephp/mobile": "^4.8",
+        "nativephp/mobile-ui": "^0.10.0",
+        "rishadblack/sylloo-app-base": "^1.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.20",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-laravel": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rishadblack\\SyllooAppNative\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Rishadblack\\SyllooAppNative\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Rishadblack\\SyllooAppNative\\SyllooAppNativeServiceProvider"
+            ]
+        },
+        "nativephp": {
+            "manifest": "nativephp.json"
+        }
+    },
+    "scripts": {
+        "test": "pest --compact",
+        "lint": "pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "keywords": [
+        "laravel",
+        "nativephp",
+        "nativephp-plugin",
+        "android",
+        "sylloo"
+    ]
+}
