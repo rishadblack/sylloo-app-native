@@ -114,6 +114,28 @@ object WindowFiles {
 }
 
 /**
+ * Links for the phone's own apps (WindowFilter.opensPhoneApp): one ACTION_VIEW intent, never `intent:` or an app the
+ * page names. False when no app takes it (the caller then hands the address to the normal browser).
+ */
+object WindowExternal {
+    fun open(context: Context, url: String): Boolean {
+        if (!WindowFilter.opensPhoneApp(url)) return false
+
+        return try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.selector = null
+            intent.component = null
+            context.startActivity(intent)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+}
+
+/**
  * Downloads of the cloud window: files of the business go to Downloads through Android's download manager with the
  * window's cookies (its notice has "Open"); a page-made file is saved there directly.
  */

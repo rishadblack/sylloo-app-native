@@ -11,7 +11,8 @@ use Rishadblack\SyllooAppNative\Faces\NativePieces;
 /**
  * Sylloo App's phone package: the native faces of the shared screens (Faces\*, view `sylloo-app-native::face`, routes
  * by Faces\NativeRoutes::register() in the app's routes/mobile.php, the app's native pieces in Faces\NativePieces) and
- * the Kotlin jobs (Clock, Secret, Lock, Location, Camera, Qr, Push, Sync, Update, Window, Phone) and the cloud window
+ * the Kotlin jobs (Clock, Secret, Lock, Location, Camera, Qr, Push, Sync, Update, Window, Phone; the switched Printer
+ * ScanKeys and Scanner, off unless config `features` turns them on) and the cloud window
  * element (`<native:sylloo-window>`). The app binds what it uses (QrScanner, SecretStore, WaitingSender).
  */
 class SyllooAppNativeServiceProvider extends ServiceProvider
@@ -23,7 +24,7 @@ class SyllooAppNativeServiceProvider extends ServiceProvider
         $this->app->singleton(Clock::class);
         $this->app->singleton(NativePieces::class);
 
-        foreach ([Secret::class, Lock::class, Location::class, Camera::class, Qr::class, Push::class, Sync::class, Update::class, Window::class, Phone::class] as $job) {
+        foreach ([Secret::class, Lock::class, Location::class, Camera::class, Qr::class, Push::class, Sync::class, Update::class, Window::class, Phone::class, Printer::class, ScanKeys::class, Scanner::class] as $job) {
             $this->app->singleton($job);
         }
     }

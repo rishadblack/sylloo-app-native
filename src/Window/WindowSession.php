@@ -12,8 +12,8 @@ use Rishadblack\SyllooAppBase\Window\WindowRules;
  * the same cases).
  *
  * Staff: `POST /app/api/session-ticket` → `{url: https://<host>/app/session?ticket=…, rules: {…}}`, keep-alive
- * `/member/app/keep-alive`. Employee: `POST actions/app-window/ticket` → `/employee/app/session?ticket=…`; the ERP has
- * no employee keep-alive route yet, so none runs.
+ * `/member/app/keep-alive`. Employee: `POST actions/app-window/ticket` → `/employee/app/session?ticket=…`, keep-alive
+ * `/employee/app/keep-alive` (204 while the device and its sign-in live; 401 `device_disconnected` ends the window).
  */
 final readonly class WindowSession
 {
@@ -22,6 +22,8 @@ final readonly class WindowSession
     public const EMPLOYEE_ENTRANCE = '/employee/app/session';
 
     public const STAFF_KEEP_ALIVE = '/member/app/keep-alive';
+
+    public const EMPLOYEE_KEEP_ALIVE = '/employee/app/keep-alive';
 
     /**
      * @param  list<string>  $hosts
@@ -64,7 +66,7 @@ final readonly class WindowSession
             paths: WindowRules::allowedPaths($answer, $employee),
             employee: $employee,
             allowHttp: ! app()->isProduction(),
-            keepAlivePath: $employee ? null : self::STAFF_KEEP_ALIVE,
+            keepAlivePath: $employee ? self::EMPLOYEE_KEEP_ALIVE : self::STAFF_KEEP_ALIVE,
             keepAliveSeconds: WindowRules::keepAliveSeconds(),
             idleMinutes: is_numeric($rules['idle_minutes'] ?? null) ? max(1, (int) $rules['idle_minutes']) : null,
             lockRequired: (bool) ($rules['lock_required'] ?? false),

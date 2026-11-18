@@ -62,6 +62,23 @@ object WindowFilter {
         return false
     }
 
+    /**
+     * A left address that the phone's own app handles (app-plan §8.1): `tel:`, `mailto:`, `sms:`, `geo:` and WhatsApp's
+     * `https://wa.me/…` / `https://api.whatsapp.com/send…` open with Android's own chooser (the dialler, mail, messages,
+     * maps, WhatsApp) instead of a browser tab. Everything else that leaves goes to the normal browser.
+     */
+    fun opensPhoneApp(url: String?): Boolean {
+        val uri = parse(url) ?: return false
+        val scheme = uri.scheme?.lowercase() ?: return false
+
+        if (scheme in OUTSIDE_SCHEMES) return true
+        if (scheme != "https") return false
+
+        val host = uri.host?.lowercase() ?: return false
+
+        return host == "wa.me" || host == "api.whatsapp.com"
+    }
+
     /** The origins (`https://host`) the window's page scripts and messages are limited to. */
     fun origins(hosts: List<String>, allowHttp: Boolean): Set<String> =
         hosts.filter { it.isNotEmpty() }.flatMap { host ->

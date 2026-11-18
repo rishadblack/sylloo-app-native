@@ -49,11 +49,11 @@ describe('WindowSession', function () {
             ->and(WindowSession::fromArray($session->toArray()))->toEqual($session);
     });
 
-    it('opens an employee ticket with the employee paths and no keep-alive (the ERP has none for employees)', function () {
+    it('opens an employee ticket with the employee paths and the employee keep-alive', function () {
         $session = WindowSession::fromTicket(['url' => 'https://demo.sylloo.app/employee/app/session?ticket=abc'], ['live' => 'demo.sylloo.app'], employee: true);
 
         expect($session->paths)->toBe(WindowRules::EMPLOYEE_PATHS)
-            ->and($session->keepAlivePath)->toBeNull();
+            ->and($session->keepAlivePath)->toBe('/employee/app/keep-alive');
     });
 
     it('refuses a ticket address it may not open', function (string $url, bool $employee) {

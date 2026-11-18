@@ -15,8 +15,16 @@ it('has a valid manifest with the jobs of plan §4.6', function () {
         ->and(array_column($this->manifest['bridge_functions'], 'name'))->toBe([
             'Clock.Elapsed', 'Secret.Set', 'Secret.Get', 'Secret.Delete', 'Lock.Status', 'Lock.Prompt', 'Location.Fix',
             'Camera.Take', 'Qr.Scan', 'Push.Permission', 'Push.Token', 'Push.Opened', 'Sync.Schedule', 'Sync.Cancel',
-            'Update.Install', 'Window.Clear',
+            'Update.Install', 'Window.Clear', 'Print.Receipt', 'Print.Printers', 'Print.Drawer', 'Scan.Keys',
+            'Scan.Camera',
         ]);
+});
+
+it('keeps the till jobs Bluetooth and USB lines out of the manifest (the build hook adds them only when switched on)', function () {
+    $android = json_encode($this->manifest['android']);
+
+    expect($android)->not->toContain('BLUETOOTH')
+        ->not->toContain('usb');
 });
 
 it('gives every job the context only, so the background run can use them with no screen', function () {

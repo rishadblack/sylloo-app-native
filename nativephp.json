@@ -151,6 +151,46 @@
                 "context"
             ],
             "description": "Remove the cloud window cookies, page storage and cache"
+        },
+        {
+            "name": "Print.Receipt",
+            "android": "com.rishadblack.plugins.sylloo_app_native.PrintFunctions.Receipt",
+            "android_params": [
+                "context"
+            ],
+            "description": "Print a receipt page (or a PNG) as an ESC/POS picture over Bluetooth, USB or the network; off unless features.print (answer: PrintAnswered)"
+        },
+        {
+            "name": "Print.Printers",
+            "android": "com.rishadblack.plugins.sylloo_app_native.PrintFunctions.Printers",
+            "android_params": [
+                "context"
+            ],
+            "description": "The paired Bluetooth printers and the attached USB printers; off unless features.print"
+        },
+        {
+            "name": "Print.Drawer",
+            "android": "com.rishadblack.plugins.sylloo_app_native.PrintFunctions.Drawer",
+            "android_params": [
+                "context"
+            ],
+            "description": "Open the cash drawer through the receipt printer (ESC p); off unless features.print (answer: PrintAnswered)"
+        },
+        {
+            "name": "Scan.Keys",
+            "android": "com.rishadblack.plugins.sylloo_app_native.ScanFunctions.Keys",
+            "android_params": [
+                "context"
+            ],
+            "description": "Catch a scanner that types while no field has the cursor, on or off; off unless features.scan_keys (codes: ScanReceived)"
+        },
+        {
+            "name": "Scan.Camera",
+            "android": "com.rishadblack.plugins.sylloo_app_native.BarcodeFunctions.Camera",
+            "android_params": [
+                "context"
+            ],
+            "description": "Read product barcodes and QR codes with the back camera, one or many in a row; off unless features.scan_camera (codes: ScanReceived, end: ScanCameraClosed)"
         }
     ],
     "android": {
@@ -182,6 +222,12 @@
             },
             {
                 "name": ".QrScanActivity",
+                "theme": "@android:style/Theme.Black.NoTitleBar.Fullscreen",
+                "exported": false,
+                "screenOrientation": "portrait"
+            },
+            {
+                "name": ".BarcodeScanActivity",
                 "theme": "@android:style/Theme.Black.NoTitleBar.Fullscreen",
                 "exported": false,
                 "screenOrientation": "portrait"
@@ -226,7 +272,10 @@
         "Rishadblack\\SyllooAppNative\\Events\\PushPermissionAnswered",
         "Rishadblack\\SyllooAppNative\\Events\\PushTokenAnswered",
         "Rishadblack\\SyllooAppNative\\Events\\PushOpened",
-        "Rishadblack\\SyllooAppNative\\Events\\UpdateAnswered"
+        "Rishadblack\\SyllooAppNative\\Events\\UpdateAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\PrintAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\ScanReceived",
+        "Rishadblack\\SyllooAppNative\\Events\\ScanCameraClosed"
     ],
     "service_provider": "Rishadblack\\SyllooAppNative\\SyllooAppNativeServiceProvider",
     "hooks": {

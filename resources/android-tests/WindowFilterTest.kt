@@ -43,4 +43,14 @@ class WindowFilterTest {
         assertEquals(setOf("https://demo.sylloo.app"), WindowFilter.origins(listOf("DEMO.sylloo.app", ""), false))
         assertEquals(setOf("https://demo.sylloo.app", "http://demo.sylloo.app"), WindowFilter.origins(listOf("demo.sylloo.app"), true))
     }
+
+    @Test
+    fun opensThePhonesOwnAppOnlyForCallsMailMessagesMapsAndWhatsApp() {
+        for (url in listOf("tel:+8801711000000", "mailto:hr@example.com", "sms:+8801711000000", "geo:23.8,90.4", "https://wa.me/8801711000000", "https://api.whatsapp.com/send?phone=880")) {
+            assertTrue(url, WindowFilter.opensPhoneApp(url))
+        }
+        for (url in listOf("http://wa.me/880", "https://example.com/wa.me", "https://wa.me.example.com/x", "intent://scan#Intent;end", "javascript:alert(1)", "file:///sdcard/x", "", null)) {
+            assertEquals(url ?: "null", false, WindowFilter.opensPhoneApp(url))
+        }
+    }
 }

@@ -256,6 +256,12 @@ class WindowHolder {
         }
     }
 
+    /** A left address: the phone's own app for `tel:`, `mailto:`, `sms:`, `geo:`, WhatsApp; else the PHP screen's browser. */
+    private fun leave(webView: WebView, url: String) {
+        if (WindowExternal.open(webView.context, url)) return
+        config?.let { send(it.onLeave, url) }
+    }
+
     private fun send(callbackId: Int, text: String) {
         val cfg = config ?: return
         if (callbackId != 0) NativeUIBridge.sendTextChangeEvent(callbackId, cfg.nodeId, text)
@@ -268,7 +274,7 @@ class WindowHolder {
 
             return when (WindowFilter.decide(request.url.toString(), cfg.hosts, cfg.paths, cfg.allowHttp, request.isRedirect)) {
                 WindowDecision.SHOW -> false
-                WindowDecision.LEAVE -> { send(cfg.onLeave, request.url.toString()); true }
+                WindowDecision.LEAVE -> { leave(view, request.url.toString()); true }
                 WindowDecision.ENDED -> { send(cfg.onEnded, request.url.toString()); true }
                 WindowDecision.BLOCK -> true
             }
@@ -321,7 +327,7 @@ class WindowHolder {
                     val cfg = config ?: return
                     when (WindowFilter.decide(url, cfg.hosts, cfg.paths, cfg.allowHttp, false)) {
                         WindowDecision.SHOW -> view.loadUrl(url)
-                        WindowDecision.LEAVE -> send(cfg.onLeave, url)
+                        WindowDecision.LEAVE -> leave(view, url)
                         else -> {}
                     }
                 }

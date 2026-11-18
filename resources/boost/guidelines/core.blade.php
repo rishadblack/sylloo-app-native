@@ -32,6 +32,14 @@ In tests fake the bridge: `Native::fakeBridge()->respondTo('Clock.Elapsed', ['st
 - `Sync` (`schedule($periodMinutes)`: WorkManager runs `sylloo-app-native:send-waiting`, which calls the app's `Contracts\WaitingSender`; print RETRY by returning false), `Update` (`install($url, $sha256)`: GitHub release hosts only → `UpdateAnswered`), `Window` (`clear()`), `Phone` (`name()` from core `Device.GetInfo`).
 - Listen with `#[On(Event::class, when: ['id' => '…'])]`; test with `Native::fakeBridge()->respondTo('Job.Call', [...])` and `->emitNative(Event::class, [...])`.
 
+### Till jobs (off unless switched on)
+
+- Config `sylloo-app-native.features.print` / `.scan_keys` (default false). Off: the class answers `not_set_up`, the build has no Bluetooth permission (the build hook adds it in a marked block only when on; never add these permissions to `nativephp.json`).
+- `Printer`: `receipt($html, 58|80, $target, id:, copies:, cut:, openDrawer:)`, `picture($png, …)`, `drawer($target)`, `printers(ask:)`. Answers a `Data\PrintOutcome` at once (`started` or a refusal), the final one as `Events\PrintAnswered` (`printed`, `opened`, `no_printer`, `not_permitted`, `failed` + `reason`). Never throws. Targets: `Data\PrinterTarget` (`bt:MAC`, `usb:vvvv:pppp`, `net:host[:port]`), the same rules as Kotlin `PrinterTarget`.
+- The receipt HTML must be self-contained (pictures as `data:`): the phone draws it with no network and no scripts.
+- `ScanKeys`: `on()` / `off()`; each code arrives as `Events\ScanReceived` (`code`, `source`). Grouping rules in Kotlin `ScanKeyGrouper` (JVM-tested), settings in config `sylloo-app-native.scan_keys`.
+- Test with `config()->set('sylloo-app-native.features.print', true)` and `Native::fakeBridge()->respondTo('Print.Receipt', ['status' => 'started'])`.
+
 ### The cloud window
 
 `<native:sylloo-window :src :hosts :paths :allow-http :keep-alive-path :keep-alive-seconds @leave @ended @navigated @failed />` (props from `Window\WindowSession::fromTicket($answer, $device->hosts(), $employee)->props()`). The package's own web view: no app bridge, only addresses `WindowRules::mayShow()` allows (Kotlin twin `WindowFilter`, both tested against `tests/Fixtures/window-cases.json`), uploads, downloads, print, back. Change the PHP and Kotlin rules together.

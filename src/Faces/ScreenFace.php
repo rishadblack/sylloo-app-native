@@ -16,6 +16,7 @@ use Rishadblack\SyllooAppBase\Screens\Screen;
 use Rishadblack\SyllooAppBase\Screens\ScreenState;
 use Rishadblack\SyllooAppBase\Screens\ScreenView;
 use Rishadblack\SyllooAppBase\Support\AppInfo;
+use Rishadblack\SyllooAppNative\Events\LockAnswered;
 use Rishadblack\SyllooAppNative\Events\QrAnswered;
 
 /**
@@ -159,6 +160,25 @@ abstract class ScreenFace extends NativeComponent
     public function qrAnswered(string $status, ?string $text = null): void
     {
         ScanQr::answered($this, $status, $text);
+    }
+
+    /**
+     * The fingerprint prompt's answer to a piece of {@see Fingerprint} (lock screen shortcut, PIN settings switch).
+     */
+    #[On(LockAnswered::class)]
+    public function lockAnswered(string $status, ?string $id = null): void
+    {
+        if ($id === Fingerprint::UNLOCK_ID || $id === Fingerprint::TURN_ON_ID) {
+            Fingerprint::answered($this, $status, $id);
+        }
+    }
+
+    /**
+     * Go to the app's first screen (a piece does this after the fingerprint unlocked the phone).
+     */
+    public function goHome(): void
+    {
+        $this->goTo('home');
     }
 
     /**
