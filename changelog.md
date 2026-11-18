@@ -2,6 +2,13 @@
 
 All notable changes to `rishadblack/sylloo-app-native` are documented in this file.
 
+## 0.3.1 - 2026-11-18
+
+### Fixed
+
+- Android release builds no longer stop at lint (`SpecifyForegroundServiceType`) when `features.sms_send` is off: the
+  phone-SMS notice keeps its `dataSync` type, and the manifest line for it is still added only when the job is on.
+
 ## 0.3.0 - 2026-11-18
 
 ### Fixed

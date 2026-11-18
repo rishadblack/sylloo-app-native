@@ -1,5 +1,6 @@
 package com.rishadblack.plugins.sylloo_app_native
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -438,6 +439,9 @@ class MessagesWorker(context: Context, params: WorkerParameters) : CoroutineWork
         const val CHANNEL = "sylloo_messages"
         const val NOTICE_ID = 7301
 
+        // The dataSync service line is in the manifest only when features.sms_send is on (FeatureManifest); with it off
+        // the job refuses on the phone and this never runs, but release lint still checks the compiled call.
+        @SuppressLint("SpecifyForegroundServiceType")
         fun notice(context: Context): ForegroundInfo {
             val manager = context.getSystemService(NotificationManager::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && manager?.getNotificationChannel(CHANNEL) == null) {
