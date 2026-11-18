@@ -2,6 +2,9 @@
 
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Sleep;
+use Native\Mobile\Edge\Element;
+use Native\Mobile\Edge\Elements\Column;
+use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Edge\NativeRouter;
 use Native\Mobile\Testing\Native;
 use Rishadblack\SyllooAppBase\Contracts\AppUpdater;
@@ -105,8 +108,9 @@ describe('Activate', function () {
             ->assertNativeCalled('Dialog.Toast', fn ($params) => str_contains(json_encode($params), 'type the code'));
     });
 
-    it('puts a scanned link\'s code in the field, and the person still presses Activate', function () {
+    it('activates at once with the office\'s activation QR, also in an app whose own scheme is another', function () {
         TestDevice::bind(activated: false);
+        config()->set('sylloo-app-base.app.link_scheme', 'sylloo-pos');
         ScanQr::addTo(app(NativePieces::class));
         $scanner = bindScanner();
 
@@ -114,13 +118,57 @@ describe('Activate', function () {
             ->tap('Scan QR code')
             ->emitNative(QrAnswered::class, ['status' => 'scanned', 'id' => ScanQr::ID, 'text' => 'sylloo-app://activate?code=1111222233334444'])
             ->assertSet('fields.code', '1111-2222-3333-4444')
-            ->assertSee('Activate this device');
+            ->assertSee('Device activated')
+            ->assertSee('Demo Ltd');
 
         expect($scanner->ids)->toBe([ScanQr::ID]);
+        $this->office->assertCalled('activate', fn ($request) => $request['code'] === '1111222233334444');
+    });
+
+    it('asks the app\'s question before a scanned activation too, and sends nothing on No', function () {
+        TestDevice::bind(activated: false);
+        ScanQr::addTo(app(NativePieces::class));
+        bindScanner();
+        app(Hooks::class)->ask('activate', 'reset', fn () => new Question('Reset terminal for the new code?', 'Another business.', 'Reset', 'Cancel', true));
+
+        Native::test(Faces\Activate::class)
+            ->emitNative(QrAnswered::class, ['status' => 'scanned', 'id' => ScanQr::ID, 'text' => 'sylloo-app://activate?code=1111222233334444'])
+            ->assertElement('modal')
+            ->assertSee('Reset terminal for the new code?')
+            ->tap('Cancel')
+            ->assertMissingElement('modal')
+            ->assertSet('fields.code', '1111-2222-3333-4444');
+
         $this->office->assertNotCalled('activate');
     });
 
-    it('says when a scanned code is not a business code, and leaves a cancelled scan alone', function () {
+    it('only fills the field with 16 digits alone, and the person presses Activate', function () {
+        TestDevice::bind(activated: false);
+        ScanQr::addTo(app(NativePieces::class));
+        bindScanner();
+
+        Native::test(Faces\Activate::class)
+            ->emitNative(QrAnswered::class, ['status' => 'scanned', 'id' => ScanQr::ID, 'text' => '1111-2222-3333-4444'])
+            ->assertSet('fields.code', '1111-2222-3333-4444')
+            ->assertElement('outlined_text_input', fn ($node) => ($node['props']['value'] ?? null) === '1111-2222-3333-4444')
+            ->assertSee('Activate this device');
+
+        $this->office->assertNotCalled('activate');
+    });
+
+    it('shows each field\'s value on the phone and takes what the person types', function () {
+        TestDevice::bind(activated: false);
+
+        Native::test(Faces\Activate::class)
+            ->set('fields.device_name', 'Counter 1')
+            ->assertElement('outlined_text_input', fn ($node) => ($node['props']['value'] ?? null) === 'Counter 1')
+            ->input("__syncProperty('fields.code')", '1234-5678-1234-5678')
+            ->assertSet('fields.code', '1234-5678-1234-5678')
+            ->tap('Activate this device')
+            ->assertSee('Device activated');
+    });
+
+    it('says when a scanned code is not an activation code, and leaves a cancelled scan alone', function () {
         TestDevice::bind(activated: false);
         ScanQr::addTo(app(NativePieces::class));
         bindScanner();
@@ -131,10 +179,25 @@ describe('Activate', function () {
             ->assertSet('fields.code', '1234')
             ->emitNative(QrAnswered::class, ['status' => 'scanned', 'id' => 'another-scan', 'text' => '1111222233334444'])
             ->assertSet('fields.code', '1234')
-            ->emitNative(QrAnswered::class, ['status' => 'scanned', 'id' => ScanQr::ID, 'text' => 'https://example.com'])
+            ->emitNative(QrAnswered::class, ['status' => 'scanned', 'id' => ScanQr::ID, 'text' => 'https://example.com/p/1111222233334444'])
             ->assertSet('fields.code', '1234')
-            ->assertNativeCalled('Dialog.Toast');
+            ->assertNativeCalled('Dialog.Toast', fn ($params) => str_contains(json_encode($params), 'not an activation code'));
+
+        $this->office->assertNotCalled('activate');
     });
+
+    it('says to type the code when the camera is refused or does not start', function (string $status, string $says) {
+        TestDevice::bind(activated: false);
+        ScanQr::addTo(app(NativePieces::class));
+        bindScanner();
+
+        Native::test(Faces\Activate::class)
+            ->emitNative(QrAnswered::class, ['status' => $status, 'id' => ScanQr::ID])
+            ->assertNativeCalled('Dialog.Toast', fn ($params) => str_contains(json_encode($params), $says));
+    })->with([
+        'refused' => ['denied', 'camera is not allowed'],
+        'did not start' => ['failed', 'could not start'],
+    ]);
 });
 
 describe('Sign in', function () {
@@ -341,7 +404,8 @@ it('registers a native route for every shared screen, and leaves out the ones th
     $routes = array_map(fn ($route) => $route['class'] ?? null, NativeRouter::registeredRoutes());
 
     foreach (NativeRoutes::FACES as $screen => $face) {
-        if ($screen !== 'businesses') {
+        // Businesses: the app left it out above; the phone SMS faces: only with features.sms_send (PhoneSmsTest).
+        if ($screen !== 'businesses' && ! isset(NativeRoutes::OPTIONAL[$screen])) {
             expect($routes)->toContain($face);
         }
     }
@@ -362,6 +426,36 @@ it('says which shared screen an app screen needs first, as the base\'s sylloo.de
 
     app(Presence::class)->lock();
     expect(Faces\ReadyDevice::screen())->toBe('lock');
+});
+
+it('hands a screen over from mount() before NativePHP made its callback list, without the last frame failing', function () {
+    TestDevice::bind(activated: false);
+
+    // As the phone's router makes a screen: mount() runs before the runloop sets up $nativeCallbacks.
+    $screen = new class extends NativeComponent
+    {
+        use Faces\NeedsReadyDevice;
+
+        public bool $ready = true;
+
+        public function mount(): void
+        {
+            $this->ready = $this->deviceReady();
+        }
+
+        public function render(): Element
+        {
+            return new Column;
+        }
+    };
+
+    $callbacks = new ReflectionProperty(NativeComponent::class, 'nativeCallbacks');
+    expect($callbacks->isInitialized($screen))->toBeFalse();
+
+    $screen->mount();
+
+    expect($screen->ready)->toBeFalse()
+        ->and($callbacks->isInitialized($screen))->toBeTrue();
 });
 
 function bindScanner(): object

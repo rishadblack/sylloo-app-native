@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 /**
  * Where each native face lives (config `sylloo-app-native.screens.paths`), and where `home` and `back` lead. The app
- * calls {@see self::register()} in its routes/mobile.php; a path set to `false` leaves the screen to the app.
+ * calls {@see self::register()} in its routes/mobile.php; a path set to `false` leaves the screen to the app. The phone
+ * SMS faces are drawn only with `features.sms_send` on.
  */
 final class NativeRoutes
 {
@@ -23,6 +24,14 @@ final class NativeRoutes
         'pin_settings' => PinSettings::class,
         'about' => About::class,
         'language' => Language::class,
+        'messages_accept' => MessagesAccept::class,
+        'messages' => Messages::class,
+    ];
+
+    /** Faces of a switched job: drawn only while its switch (`features.<name>`) is on. */
+    public const OPTIONAL = [
+        'messages_accept' => 'sms_send',
+        'messages' => 'sms_send',
     ];
 
     public static function register(): void
@@ -43,6 +52,10 @@ final class NativeRoutes
     {
         if ($screen === 'home') {
             return '/'.ltrim((string) config('sylloo-app-native.screens.home', '/'), '/');
+        }
+
+        if (isset(self::OPTIONAL[$screen]) && config('sylloo-app-native.features.'.self::OPTIONAL[$screen], false) !== true) {
+            return null;
         }
 
         $path = config('sylloo-app-native.screens.paths.'.$screen);

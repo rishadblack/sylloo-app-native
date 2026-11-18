@@ -93,19 +93,38 @@ class BarcodeDecoderTest {
     }
 
     @Test
-    fun countsTheSameCodeOnceWithinOneAndAHalfSeconds() {
+    fun countsAnItemHeldUnderTheCameraOnlyOnce() {
         val guard = ScanRepeatGuard()
         assertTrue(guard.accept("8901234567890", 10_000))
-        assertFalse(guard.accept("8901234567890", 10_400))
-        assertFalse(guard.accept("8901234567890", 11_499))
-        assertTrue(guard.accept("8901234567890", 11_500))
+        // Read again and again while it is held there, for seconds: still one.
+        for (t in 10_100L..14_000L step 100) assertFalse(guard.accept("8901234567890", t))
     }
 
     @Test
-    fun countsADifferentCodeAtOnceAndTheFirstAgainAfterIt() {
+    fun countsTheSameCodeAgainAfterItWasOutOfSightForTheGap() {
+        val guard = ScanRepeatGuard()
+        assertTrue(guard.accept("8901234567890", 0))
+        assertFalse(guard.accept("8901234567890", 300))
+        // Taken away at 300, shown again 0.8 s later: a second unit.
+        assertFalse(guard.accept("8901234567890", 1_099))
+        assertTrue(guard.accept("8901234567890", 1_899))
+    }
+
+    @Test
+    fun countsADifferentCodeAtOnceButNotTheFirstWhileItIsStillInSight() {
         val guard = ScanRepeatGuard()
         assertTrue(guard.accept("A1", 0))
         assertTrue(guard.accept("B2", 100))
-        assertTrue(guard.accept("A1", 200))
+        // Both lie under the camera: A1 is read again, it is the same item.
+        assertFalse(guard.accept("A1", 200))
+        assertFalse(guard.accept("B2", 300))
+        assertTrue(guard.accept("A1", 1_000))
+    }
+
+    @Test
+    fun forgetsOldCodesSoItStaysSmall() {
+        val guard = ScanRepeatGuard()
+        for (i in 0 until 200) assertTrue(guard.accept("C$i", i * 1_000L))
+        assertTrue(guard.accept("C0", 300_000))
     }
 }

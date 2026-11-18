@@ -8,11 +8,14 @@ import java.net.URI
  * - SHOW: the window shows it (one of the business's hosts, under an allowed path).
  * - LEAVE: it opens in the normal browser (another site, or a page of the business the window may not show; a
  *   `mailto:` / `tel:` link opens its app).
- * - ENDED: the business sent the window to a page it may not show by a redirect: its session ended (a sign-in page);
- *   the app asks for a new one-use ticket (quietly, within the base's limit) instead of opening the browser.
+ * - ENDED: the business's sign-in page (`/member/login`, `/login`), or a redirect to a page of the business the window
+ *   may not show: its session ended; the app asks for a new one-use ticket (quietly, within the base's limit) instead
+ *   of showing that page or opening the browser.
+ * - SIGN_OUT: the page's own Sign out (`/member/theme/logout`, `/member/logout`, `/logout`): the app signs this member
+ *   out of the app too, so the sign-in page that follows never signs them in again quietly (desktop: `signOut`).
  * - BLOCK: nothing happens (`javascript:`, `file:`, `content:`, `intent:`, a page-made `data:` or `blob:` page).
  */
-enum class WindowDecision { SHOW, LEAVE, ENDED, BLOCK }
+enum class WindowDecision { SHOW, LEAVE, ENDED, SIGN_OUT, BLOCK }
 
 /**
  * The cloud window's filter (pure, JVM-tested). It is the Kotlin twin of the shared base's
@@ -22,6 +25,12 @@ enum class WindowDecision { SHOW, LEAVE, ENDED, BLOCK }
 object WindowFilter {
     private val OUTSIDE_SCHEMES = setOf("mailto", "tel", "sms", "geo")
 
+    /** The business's sign-in pages (the same list as the desktop app's `SIGN_IN_PATHS`). */
+    val SIGN_IN_PATHS = listOf("/member/login", "/login")
+
+    /** The business's sign-out addresses (the same list as the desktop app's `SIGN_OUT_PATHS`). */
+    val SIGN_OUT_PATHS = listOf("/member/theme/logout", "/member/logout", "/logout")
+
     fun decide(url: String?, hosts: List<String>, paths: List<String>, allowHttp: Boolean, isRedirect: Boolean): WindowDecision {
         val uri = parse(url) ?: return WindowDecision.BLOCK
         val scheme = uri.scheme?.lowercase() ?: return WindowDecision.BLOCK
@@ -29,12 +38,33 @@ object WindowFilter {
         if (scheme in OUTSIDE_SCHEMES) return WindowDecision.LEAVE
         if (scheme != "https" && scheme != "http") return WindowDecision.BLOCK
 
+        val host = uri.host?.lowercase()
+        val businessHost = host != null && host in hosts.filter { it.isNotEmpty() }.map { it.lowercase() }
+
+        if (businessHost && uri.rawUserInfo == null) {
+            val path = "/" + (uri.rawPath ?: "/").trimStart('/')
+            if (SIGN_OUT_PATHS.any { under(path, it) }) return WindowDecision.SIGN_OUT
+            if (SIGN_IN_PATHS.any { under(path, it) }) return WindowDecision.ENDED
+        }
+
         if (mayShow(url, hosts, paths, allowHttp)) return WindowDecision.SHOW
 
-        val host = uri.host?.lowercase()
-        val businessHost = host != null && host in hosts.map { it.lowercase() }
-
         return if (businessHost && isRedirect) WindowDecision.ENDED else WindowDecision.LEAVE
+    }
+
+    /** How long after the page's own Sign out was sent its answer still counts as that sign-out. */
+    const val SIGN_OUT_ANSWER_MS = 15_000L
+
+    /**
+     * What a navigation means right after the page's own Sign out was sent (`msSinceSignOut`, null when none was).
+     * Android shows the window the Sign out POST only once the business answered it (a redirect to its sign-in page; on
+     * Practice the Live sign-in address), so that answer is the sign-out: SIGN_OUT, never ENDED (a quiet new ticket
+     * would sign the member in again) or LEAVE (the browser). A page the window shows stays SHOW.
+     */
+    fun afterSignOut(decision: WindowDecision, msSinceSignOut: Long?): WindowDecision {
+        if (msSinceSignOut == null || msSinceSignOut < 0 || msSinceSignOut > SIGN_OUT_ANSWER_MS) return decision
+
+        return if (decision == WindowDecision.ENDED || decision == WindowDecision.LEAVE) WindowDecision.SIGN_OUT else decision
     }
 
     /**
@@ -60,6 +90,12 @@ object WindowFilter {
         }
 
         return false
+    }
+
+    /** `/member/login` matches `/member/login` and `/member/login/…`, never `/member/loginx`. */
+    private fun under(path: String, prefix: String): Boolean {
+        val normal = "/" + prefix.trim('/')
+        return path.trimEnd('/') == normal || path.startsWith("$normal/")
     }
 
     /**

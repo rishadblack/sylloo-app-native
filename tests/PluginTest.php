@@ -14,9 +14,11 @@ it('has a valid manifest with the jobs of plan §4.6', function () {
         ->and($this->manifest['namespace'])->toBe('SyllooAppNative')
         ->and(array_column($this->manifest['bridge_functions'], 'name'))->toBe([
             'Clock.Elapsed', 'Secret.Set', 'Secret.Get', 'Secret.Delete', 'Lock.Status', 'Lock.Prompt', 'Location.Fix',
-            'Camera.Take', 'Qr.Scan', 'Push.Permission', 'Push.Token', 'Push.Opened', 'Sync.Schedule', 'Sync.Cancel',
+            'Camera.Take', 'Qr.Scan', 'Push.Permission', 'Push.Token', 'Push.Opened', 'Push.Labels', 'Sync.Schedule', 'Sync.Cancel',
             'Update.Install', 'Window.Clear', 'Print.Receipt', 'Print.Printers', 'Print.Drawer', 'Scan.Keys',
-            'Scan.Camera',
+            'Scan.Camera', 'Scan.Answer', 'Sms.Send', 'Sms.Sims', 'Sms.Permission', 'Messages.Start', 'Messages.Work',
+            'Messages.Stop', 'Messages.Status', 'Notice.Schedule', 'Notice.Cancel', 'Notice.Opened', 'Calls.Recent',
+            'Calls.Ended', 'Calls.Permission', 'Calls.Status', 'Calls.Folder', 'Calls.FolderStatus', 'Calls.Recording', 'Calls.RecordingDrop',
         ]);
 });
 
@@ -44,6 +46,10 @@ it('declares the permissions and only free, open dependencies', function () {
         'com.google.zxing:core:3.5.3',
         'androidx.work:work-runtime-ktx:2.10.0',
         'com.google.firebase:firebase-messaging:24.1.0',
+        'androidx.camera:camera-core:1.4.1',
+        'androidx.camera:camera-camera2:1.4.1',
+        'androidx.camera:camera-lifecycle:1.4.1',
+        'androidx.camera:camera-view:1.4.1',
     ])->and($this->manifest['android']['permissions'])->not->toContain('android.permission.ACCESS_BACKGROUND_LOCATION');
 });
 

@@ -15,7 +15,7 @@
         "php": "^8.3",
         "nativephp/mobile": "^4.8",
         "nativephp/mobile-ui": "^0.10.0",
-        "rishadblack/sylloo-app-base": "^1.0"
+        "rishadblack/sylloo-app-base": "^1.2"
     },
     "require-dev": {
         "laravel/pint": "^1.20",

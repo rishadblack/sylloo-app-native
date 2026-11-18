@@ -2,6 +2,7 @@
 
 namespace Rishadblack\SyllooAppNative\Faces;
 
+use Native\Mobile\Edge\CallbackRegistry;
 use Rishadblack\SyllooAppBase\Language\Language;
 
 /**
@@ -28,6 +29,9 @@ trait NeedsReadyDevice
             return true;
         }
 
+        // Called from mount(), before NativePHP has made the screen's callback list: replace() draws a last frame of
+        // this screen on the way out, which needs that list ("must not be accessed before initialization").
+        $this->nativeCallbacks ??= new CallbackRegistry;
         $this->replace(NativeRoutes::path($screen) ?? '/');
 
         return false;

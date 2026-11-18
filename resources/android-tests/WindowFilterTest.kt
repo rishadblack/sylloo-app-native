@@ -39,6 +39,28 @@ class WindowFilterTest {
     }
 
     @Test
+    fun countsTheAnswerToThePagesSignOutAsTheSignOut() {
+        val hosts = listOf("new.practice.sylloo.app", "new.sylloo.app")
+        val paths = listOf("/member")
+        val toSignIn = WindowFilter.decide("https://new.practice.sylloo.app/member/login", hosts, paths, false, true)
+        val elsewhere = WindowFilter.decide("https://login.example.com/member/login", hosts, paths, false, true)
+
+        assertEquals(WindowDecision.ENDED, toSignIn)
+        assertEquals(WindowDecision.LEAVE, elsewhere)
+
+        // Right after the Sign out was sent, its answer (the sign-in page, or another address) is the sign-out.
+        assertEquals(WindowDecision.SIGN_OUT, WindowFilter.afterSignOut(toSignIn, 300L))
+        assertEquals(WindowDecision.SIGN_OUT, WindowFilter.afterSignOut(elsewhere, 300L))
+        assertEquals(WindowDecision.SHOW, WindowFilter.afterSignOut(WindowDecision.SHOW, 300L))
+        assertEquals(WindowDecision.BLOCK, WindowFilter.afterSignOut(WindowDecision.BLOCK, 300L))
+
+        // No Sign out sent, or too long ago: unchanged.
+        assertEquals(WindowDecision.ENDED, WindowFilter.afterSignOut(toSignIn, null))
+        assertEquals(WindowDecision.ENDED, WindowFilter.afterSignOut(toSignIn, WindowFilter.SIGN_OUT_ANSWER_MS + 1))
+        assertEquals(WindowDecision.LEAVE, WindowFilter.afterSignOut(elsewhere, -5L))
+    }
+
+    @Test
     fun limitsPageScriptsToTheBusinessOrigins() {
         assertEquals(setOf("https://demo.sylloo.app"), WindowFilter.origins(listOf("DEMO.sylloo.app", ""), false))
         assertEquals(setOf("https://demo.sylloo.app", "http://demo.sylloo.app"), WindowFilter.origins(listOf("demo.sylloo.app"), true))

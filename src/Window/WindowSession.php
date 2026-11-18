@@ -25,6 +25,15 @@ final readonly class WindowSession
 
     public const EMPLOYEE_KEEP_ALIVE = '/employee/app/keep-alive';
 
+    /** The business's sign-in pages: never shown, a new ticket instead (the desktop app's `SIGN_IN_PATHS`). */
+    public const SIGN_IN_PATHS = ['/member/login', '/login'];
+
+    /** The page's own Sign out: the member is signed out of the app too (the desktop app's `SIGN_OUT_PATHS`). */
+    public const SIGN_OUT_PATHS = ['/member/theme/logout', '/member/logout', '/logout'];
+
+    /** The `ended` text the window sends when the member used the page's own Sign out (WindowHolder.SIGNED_OUT). */
+    public const SIGNED_OUT = 'signed_out';
+
     /**
      * @param  list<string>  $hosts
      * @param  list<string>  $paths
@@ -84,16 +93,30 @@ final readonly class WindowSession
 
     /**
      * What the window does with an address (the twin of WindowFilter.decide() in Kotlin): `show`; `leave` (the normal
-     * browser: another site, a page of the business the window may not show, `mailto:`/`tel:`); `ended` (the business
-     * redirected the window to a page it may not show: its session ended); `block` (`javascript:`, `file:`, …).
+     * browser: another site, a page of the business the window may not show, `mailto:`/`tel:`); `ended` (the
+     * business's sign-in page, or a redirect to a page the window may not show: its session ended); `sign_out` (the
+     * page's own Sign out: the member is signed out of the app too); `block` (`javascript:`, `file:`, …).
      */
     public function decide(string $url, bool $isRedirect = false): string
     {
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        if (in_array($scheme, ['https', 'http'], true) && in_array($host, $this->hosts, true) && parse_url($url, PHP_URL_USER) === null) {
+            $path = '/'.ltrim((string) parse_url($url, PHP_URL_PATH), '/');
+
+            if (self::under($path, self::SIGN_OUT_PATHS)) {
+                return 'sign_out';
+            }
+
+            if (self::under($path, self::SIGN_IN_PATHS)) {
+                return 'ended';
+            }
+        }
+
         if ($this->mayShow($url)) {
             return 'show';
         }
-
-        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
 
         if (in_array($scheme, ['mailto', 'tel', 'sms', 'geo'], true)) {
             return 'leave';
@@ -103,7 +126,23 @@ final readonly class WindowSession
             return 'block';
         }
 
-        return $isRedirect && in_array(strtolower((string) parse_url($url, PHP_URL_HOST)), $this->hosts, true) ? 'ended' : 'leave';
+        return $isRedirect && in_array($host, $this->hosts, true) ? 'ended' : 'leave';
+    }
+
+    /**
+     * @param  list<string>  $prefixes
+     */
+    protected static function under(string $path, array $prefixes): bool
+    {
+        foreach ($prefixes as $prefix) {
+            $prefix = '/'.trim($prefix, '/');
+
+            if (rtrim($path, '/') === $prefix || str_starts_with($path, $prefix.'/')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

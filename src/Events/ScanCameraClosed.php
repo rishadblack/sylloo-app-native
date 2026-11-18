@@ -7,7 +7,8 @@ use Native\Mobile\Events\Contracts\DispatchableFromNative;
 
 /**
  * The camera scanner (Scan.Camera) closed: `status` done (codes were read) | cancelled (closed before a read) | denied
- * (no camera permission) | failed (no camera); `count` the codes it sent as {@see ScanReceived}.
+ * (no camera permission) | failed (no camera); `count` the codes it sent as {@see ScanReceived}; `continuous` whether
+ * continuous scan was on when it closed (the person's last choice; null when the screen never opened).
  */
 class ScanCameraClosed implements DispatchableFromNative
 {
@@ -17,5 +18,6 @@ class ScanCameraClosed implements DispatchableFromNative
         public string $status,
         public ?string $id = null,
         public int $count = 0,
+        public ?bool $continuous = null,
     ) {}
 }

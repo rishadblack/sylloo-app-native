@@ -27,7 +27,7 @@ describe('Switched off (the default)', function () {
     it('answers not_set_up without asking the phone', function () {
         $printer = app(Printer::class);
 
-        expect(config('sylloo-app-native.features'))->toBe(['print' => false, 'scan_keys' => false, 'scan_camera' => false])
+        expect(config('sylloo-app-native.features'))->toBe(['print' => false, 'scan_keys' => false, 'scan_camera' => false, 'sms_send' => false, 'notice_schedule' => false, 'calls_recent' => false, 'calls_ended' => false, 'calls_recording' => false])
             ->and($printer->enabled())->toBeFalse()
             ->and($printer->receipt('<p>x</p>', 58, 'bt:AA:BB:CC:DD:EE:FF')->status)->toBe('not_set_up')
             ->and($printer->picture("\x89PNG\r\n\x1a\nx", 80, 'net:10.0.0.5')->status)->toBe('not_set_up')
@@ -36,7 +36,8 @@ describe('Switched off (the default)', function () {
             ->and(app(ScanKeys::class)->on())->toBe('not_set_up')
             ->and(app(ScanKeys::class)->off())->toBe('not_set_up')
             ->and(app(Scanner::class)->cameraEnabled())->toBeFalse()
-            ->and(app(Scanner::class)->camera('sell'))->toBe('not_set_up');
+            ->and(app(Scanner::class)->camera('sell'))->toBe('not_set_up')
+            ->and(app(Scanner::class)->answer('sell', 'Added'))->toBe('not_set_up');
 
         $this->bridge->assertNothingCalled();
     });
@@ -224,8 +225,103 @@ describe('Scanner (camera)', function () {
         expect($scanner->camera('sell'))->toBe('started')
             ->and($scanner->camera('find', continuous: false))->toBe('started');
 
-        $this->bridge->assertCalled('Scan.Camera', fn ($p) => $p === ['id' => 'sell', 'continuous' => true])
-            ->assertCalled('Scan.Camera', fn ($p) => $p === ['id' => 'find', 'continuous' => false]);
+        $this->bridge->assertCalled('Scan.Camera', fn ($p) => $p === ['id' => 'sell', 'continuous' => true, 'switchable' => true, 'continuous_label' => 'Continuous scan', 'on_label' => 'On', 'off_label' => 'Off', 'done_label' => 'Done'])
+            ->assertCalled('Scan.Camera', fn ($p) => $p === ['id' => 'find', 'continuous' => false, 'switchable' => true, 'continuous_label' => 'Continuous scan', 'on_label' => 'On', 'off_label' => 'Off', 'done_label' => 'Done']);
+    });
+
+    it('can hide the continuous scan switch, so the app alone decides', function () {
+        $this->bridge->respondTo('Scan.Camera', fn () => ['status' => 'started']);
+
+        expect(app(Scanner::class)->camera('find', continuous: false, switchable: false))->toBe('started');
+
+        $this->bridge->assertCalled('Scan.Camera', fn ($p) => $p['continuous'] === false && $p['switchable'] === false);
+    });
+
+    it('sends the switch text in the app language: English, Bangla and Finnish', function (string $locale, string $label) {
+        $this->bridge->respondTo('Scan.Camera', fn () => ['status' => 'started']);
+        app()->setLocale($locale);
+
+        app(Scanner::class)->camera('sell');
+
+        $this->bridge->assertCalled('Scan.Camera', fn ($p) => $p['continuous_label'] === $label);
+    })->with([
+        ['en', 'Continuous scan'],
+        ['bn', 'একটানা স্ক্যান'],
+        ['fi', 'Jatkuva skannaus'],
+    ]);
+
+    it('sends the switch state words and the Done button in the app language', function (string $locale, string $on, string $off, string $done) {
+        $this->bridge->respondTo('Scan.Camera', fn () => ['status' => 'started']);
+        app()->setLocale($locale);
+
+        app(Scanner::class)->camera('sell');
+
+        $this->bridge->assertCalled('Scan.Camera', fn ($p) => $p['on_label'] === $on && $p['off_label'] === $off && $p['done_label'] === $done);
+    })->with([
+        ['en', 'On', 'Off', 'Done'],
+        ['bn', 'চালু', 'বন্ধ', 'শেষ'],
+        ['fi', 'Päällä', 'Pois', 'Valmis'],
+    ]);
+
+    it('shows the app answer under the aim box: ok, warn, error, for its screen', function () {
+        $this->bridge->respondTo('Scan.Answer', fn () => ['status' => 'shown']);
+        $scanner = app(Scanner::class);
+
+        expect($scanner->answer('sell', 'Added: Rice 5 kg × 2'))->toBe('shown')
+            ->and($scanner->answer(null, 'No product
+with code 123', Scanner::ERROR))->toBe('shown')
+            ->and($scanner->answer('sell', 'Stock low', 'purple'))->toBe('shown');
+
+        $this->bridge->assertCalled('Scan.Answer', fn ($p) => $p === ['id' => 'sell', 'text' => 'Added: Rice 5 kg × 2', 'kind' => 'ok'])
+            ->assertCalled('Scan.Answer', fn ($p) => $p === ['text' => 'No product with code 123', 'kind' => 'error'])
+            ->assertCalled('Scan.Answer', fn ($p) => $p['kind'] === 'ok' && $p['text'] === 'Stock low');
+    });
+
+    it('passes on not_open when no camera screen is open, and sends nothing for an empty line', function () {
+        $this->bridge->respondTo('Scan.Answer', fn () => ['status' => 'not_open']);
+
+        expect(app(Scanner::class)->answer('find', 'Added'))->toBe('not_open')
+            ->and(app(Scanner::class)->answer('find', '  
+ '))->toBe('failed')
+            ->and(app(Scanner::class)->answer('find', str_repeat('x', 200)))->toBe('not_open');
+
+        $this->bridge->assertCalled('Scan.Answer', fn ($p) => mb_strlen($p['text']) === Scanner::ANSWER_MAX);
+    });
+
+    it('draws its own switch and a Done button on the camera screen (no theme-less platform Switch, no Cancel)', function () {
+        $kotlin = (string) file_get_contents(dirname(__DIR__, 2).'/resources/android/BarcodeFunctions.kt');
+
+        expect($kotlin)->toContain('class ScanToggleView')
+            ->toContain('info.className = "android.widget.Switch"')
+            ->toContain('parameters["done_label"]')
+            ->not->toContain('android.widget.Switch
+')
+            ->not->toContain('import android.widget.Switch')
+            ->not->toContain('android.R.string.cancel');
+    });
+
+    it('tells PHP whether continuous scan was on, and stays compatible without it', function () {
+        $one = new ScanReceived(code: '8901234567890', source: 'camera', format: 'ean_13', id: 'sell', continuous: false);
+        $closed = new ScanCameraClosed(status: 'done', id: 'sell', count: 1, continuous: false);
+        $typed = new ScanReceived(code: '8901234567890');
+        $old = new ScanCameraClosed(status: 'cancelled', id: 'sell');
+
+        expect($one->continuous)->toBeFalse()
+            ->and($closed->continuous)->toBeFalse()
+            ->and($typed->continuous)->toBeNull()
+            ->and($old->continuous)->toBeNull()
+            ->and(new ScanReceived(...['code' => 'A1', 'source' => 'camera', 'format' => 'code_128', 'id' => 'sell', 'continuous' => true]))
+            ->continuous->toBeTrue();
+    });
+
+    it('keeps the choice in the app SharedPreferences and sends the mode with each code', function () {
+        $root = dirname(__DIR__, 2);
+        $screen = (string) file_get_contents($root.'/resources/android/BarcodeFunctions.kt');
+
+        expect($screen)->toContain('getSharedPreferences(ScanMode.PREFS, MODE_PRIVATE)')
+            ->toContain('put("continuous", !onlyOne)')
+            ->toContain('parameters["continuous_label"]')
+            ->toContain('if (onlyOne) close()');
     });
 
     it('passes on not_set_up from a build without the feature, and failed for anything else', function () {
@@ -251,10 +347,38 @@ describe('Scanner (camera)', function () {
     it('is a declared bridge function, activity and event of the plugin', function () {
         $plugin = json_decode((string) file_get_contents(dirname(__DIR__, 2).'/nativephp.json'), true);
 
+        expect(collect($plugin['bridge_functions'])->firstWhere('name', 'Scan.Answer')['android'] ?? null)->toBe('com.rishadblack.plugins.sylloo_app_native.BarcodeFunctions.Answer');
+
         expect(collect($plugin['bridge_functions'])->firstWhere('name', 'Scan.Camera')['android'] ?? null)
             ->toBe('com.rishadblack.plugins.sylloo_app_native.BarcodeFunctions.Camera')
             ->and(collect($plugin['android']['activities'])->pluck('name'))->toContain('.BarcodeScanActivity')
             ->and($plugin['events'])->toContain(ScanCameraClosed::class)->toContain(ScanReceived::class);
+    });
+
+    it('reads with ZXing core only (no Google ML Kit, no Play services) and ships the reader tests', function () {
+        $root = dirname(__DIR__, 2);
+        $plugin = json_decode((string) file_get_contents($root.'/nativephp.json'), true);
+        $dependencies = implode("\n", $plugin['android']['dependencies']['implementation']);
+
+        expect($dependencies)->toContain('com.google.zxing:core:')
+            ->not->toContain('mlkit')
+            ->not->toContain('play-services')
+            ->and(file_exists($root.'/resources/android/BarcodeDecoder.kt'))->toBeTrue()
+            ->and(file_exists($root.'/resources/android-tests/BarcodeReaderTest.kt'))->toBeTrue();
+    });
+
+    it('reads only the aim box on the camera screen and counts a held item once', function () {
+        $root = dirname(__DIR__, 2);
+        $pure = (string) file_get_contents($root.'/resources/android/BarcodeDecoder.kt');
+        $screen = (string) file_get_contents($root.'/resources/android/BarcodeFunctions.kt');
+
+        expect($pure)->toContain('class BarcodeReader')
+            ->toContain('class ScanRepeatGuard(private val gapMs: Long = 800)')
+            ->and($screen)->toContain('reader.read(frame, plane.rowStride, image.width, image.height, image.imageInfo.rotationDegrees')
+            ->toContain('STRATEGY_KEEP_ONLY_LATEST')
+            ->toContain('setViewPort')
+            // The camera's frame is copied into one reused buffer, not a new array per frame.
+            ->not->toContain('ByteArray(buffer.remaining())');
     });
 });
 

@@ -6,6 +6,7 @@ use Illuminate\View\View;
 use Native\Mobile\Attributes\Locked;
 use Native\Mobile\Attributes\On;
 use Native\Mobile\Edge\NativeComponent;
+use Native\Mobile\Edge\NativeRouter;
 use Native\Mobile\Facades\Browser;
 use Native\Mobile\Facades\Dialog;
 use Rishadblack\SyllooAppBase\Contracts\BrowserOpener;
@@ -154,12 +155,19 @@ abstract class ScreenFace extends NativeComponent
     }
 
     /**
-     * The QR scanner's answer to Activate's "Scan QR code" ({@see ScanQr}).
+     * The QR scanner's answer to Activate's "Scan QR code" ({@see ScanQr}). The id is checked here, not with a `when`
+     * filter, so a debug build's edge-nav log shows every answer that reached the screen.
      */
-    #[On(QrAnswered::class, when: ['id' => ScanQr::ID])]
-    public function qrAnswered(string $status, ?string $text = null): void
+    #[On(QrAnswered::class)]
+    public function qrAnswered(string $status, ?string $id = null, ?string $text = null): void
     {
-        ScanQr::answered($this, $status, $text);
+        if (NativeRouter::debugLoggingEnabled()) {
+            NativeRouter::debugLog(sprintf('QrAnswered on %s: status=%s id=%s text=%d chars', static::class, $status, $id ?? '-', mb_strlen((string) $text)));
+        }
+
+        if ($id === ScanQr::ID) {
+            ScanQr::answered($this, $status, $text);
+        }
     }
 
     /**

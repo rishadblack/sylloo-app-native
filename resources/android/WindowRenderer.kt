@@ -15,6 +15,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -50,7 +51,7 @@ import org.json.JSONObject
  * Props (set by the PHP element `Rishadblack\SyllooAppNative\Elements\CloudWindow` from the shared base's
  * WindowRules): `src` (the one-use ticket address), `hosts`, `paths`, `allow_http`, `keep_alive_path`,
  * `keep_alive_seconds`. Callbacks (each with one text): `on_leave` (an address for the normal browser), `on_ended`
- * (the session ended: ask for a new ticket), `on_navigated` (the address shown), `on_failed` (the page did not load:
+ * (the session ended: ask for a new ticket; the text `signed_out` when the member used the page's own Sign out), `on_navigated` (the address shown), `on_failed` (the page did not load:
  * offline).
  */
 object WindowRenderer {
@@ -147,6 +148,12 @@ data class WindowConfig(
  * The live web view of one cloud window and what it does.
  */
 class WindowHolder {
+    companion object {
+        /** The `ended` text when the member used the page's own Sign out. */
+        const val SIGNED_OUT = "signed_out"
+    }
+
+
     var view: WebView? = null
     var config: WindowConfig? = null
     var onHistory: (Boolean) -> Unit = {}
@@ -267,21 +274,82 @@ class WindowHolder {
         if (callbackId != 0) NativeUIBridge.sendTextChangeEvent(callbackId, cfg.nodeId, text)
     }
 
+    private var lastEnded = ""
+    private var lastEndedAt = 0L
+
+    /** When the page's own Sign out was sent (elapsedRealtime; 0 = not yet). Written on WebView's network thread. */
+    @Volatile
+    private var signOutSentAt = 0L
+
+    /** The time since the page's own Sign out was sent, or null when it was not. */
+    private fun sinceSignOut(): Long? =
+        if (signOutSentAt == 0L) null else SystemClock.elapsedRealtime() - signOutSentAt
+
+    /** What the window does with an address it does not show; the same ended / sign-out is told once (within 2 s). */
+    private fun act(view: WebView, cfg: WindowConfig, url: String, isRedirect: Boolean) {
+        val decision = WindowFilter.decide(url, cfg.hosts, cfg.paths, cfg.allowHttp, isRedirect)
+        when (WindowFilter.afterSignOut(decision, sinceSignOut())) {
+            WindowDecision.LEAVE -> leave(view, url)
+            WindowDecision.ENDED -> endOnce(cfg, url)
+            WindowDecision.SIGN_OUT -> endOnce(cfg, SIGNED_OUT)
+            else -> {}
+        }
+    }
+
+    private fun endOnce(cfg: WindowConfig, why: String) {
+        val now = SystemClock.elapsedRealtime()
+        val key = if (why == SIGNED_OUT) SIGNED_OUT else "ended"
+        if (key == lastEnded && now - lastEndedAt < 2_000L) return
+        if (lastEnded == SIGNED_OUT && now - lastEndedAt < 2_000L) return
+        lastEnded = key
+        lastEndedAt = now
+        send(cfg.onEnded, why)
+    }
+
     private inner class Client : WebViewClient() {
+        /**
+         * The page's own Sign out is a form sent with POST: shouldOverrideUrlLoading never sees it, and onPageStarted
+         * only after the business answered it (its redirect then looks like an ended session). Here it is seen before it
+         * is sent: it goes on (the business signs its web session out too) and its answer counts as the sign-out
+         * (WindowFilter.afterSignOut). Runs on WebView's network thread.
+         */
+        override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+            val cfg = config
+            if (cfg != null && request.isForMainFrame &&
+                WindowFilter.decide(request.url.toString(), cfg.hosts, cfg.paths, cfg.allowHttp, false) == WindowDecision.SIGN_OUT
+            ) {
+                signOutSentAt = SystemClock.elapsedRealtime()
+            }
+
+            return null
+        }
+
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             if (!request.isForMainFrame) return false
             val cfg = config ?: return true
 
-            return when (WindowFilter.decide(request.url.toString(), cfg.hosts, cfg.paths, cfg.allowHttp, request.isRedirect)) {
+            val url = request.url.toString()
+            val decision = WindowFilter.decide(url, cfg.hosts, cfg.paths, cfg.allowHttp, request.isRedirect)
+
+            return when (WindowFilter.afterSignOut(decision, sinceSignOut())) {
                 WindowDecision.SHOW -> false
-                WindowDecision.LEAVE -> { leave(view, request.url.toString()); true }
-                WindowDecision.ENDED -> { send(cfg.onEnded, request.url.toString()); true }
-                WindowDecision.BLOCK -> true
+                else -> { act(view, cfg, url, request.isRedirect); true }
             }
         }
 
+        /**
+         * The second check, for what shouldOverrideUrlLoading never sees: a form sent with POST (the page's own Sign
+         * out) and the page its answer leads to. A page the window may not show is stopped before it is drawn. The
+         * ticket address the window was opened with is always let through.
+         */
         override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
             onHistory(view.canGoBack())
+            val cfg = config ?: return
+            if (url == null || url == "about:blank" || url == view.tag) return
+            if (WindowFilter.decide(url, cfg.hosts, cfg.paths, cfg.allowHttp, true) == WindowDecision.SHOW) return
+
+            view.stopLoading()
+            act(view, cfg, url, true)
         }
 
         override fun onPageFinished(view: WebView, url: String?) {

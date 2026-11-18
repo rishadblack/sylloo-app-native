@@ -121,6 +121,14 @@
             "description": "The address of the tapped notice, once"
         },
         {
+            "name": "Push.Labels",
+            "android": "com.rishadblack.plugins.sylloo_app_native.PushFunctions.Labels",
+            "android_params": [
+                "context"
+            ],
+            "description": "The app's texts of the buttons a push may ask for (e.g. {\"crm.call\": \"Call\"}); a button without one is not shown"
+        },
+        {
             "name": "Sync.Schedule",
             "android": "com.rishadblack.plugins.sylloo_app_native.SyncFunctions.Schedule",
             "android_params": [
@@ -191,6 +199,158 @@
                 "context"
             ],
             "description": "Read product barcodes and QR codes with the back camera, one or many in a row; off unless features.scan_camera (codes: ScanReceived, end: ScanCameraClosed)"
+        },
+        {
+            "name": "Scan.Answer",
+            "android": "com.rishadblack.plugins.sylloo_app_native.BarcodeFunctions.Answer",
+            "android_params": [
+                "context"
+            ],
+            "description": "One line (ok, warn, error) under the aim box of the open camera scan screen for 2 s; off unless features.scan_camera"
+        },
+        {
+            "name": "Sms.Send",
+            "android": "com.rishadblack.plugins.sylloo_app_native.SmsFunctions.Send",
+            "android_params": [
+                "context"
+            ],
+            "description": "One SMS from a SIM slot (multipart for a long or Bangla text); outcome as SmsAnswered; off unless features.sms_send"
+        },
+        {
+            "name": "Sms.Sims",
+            "android": "com.rishadblack.plugins.sylloo_app_native.SmsFunctions.Sims",
+            "android_params": [
+                "context"
+            ],
+            "description": "The phone's SIMs (slot, operator label; Android gives no SIM number); off unless features.sms_send"
+        },
+        {
+            "name": "Sms.Permission",
+            "android": "com.rishadblack.plugins.sylloo_app_native.SmsFunctions.Permission",
+            "android_params": [
+                "context"
+            ],
+            "description": "Android's SEND_SMS and READ_PHONE_STATE question; answer as SmsPermissionAnswered; off unless features.sms_send"
+        },
+        {
+            "name": "Messages.Start",
+            "android": "com.rishadblack.plugins.sylloo_app_native.MessagesFunctions.Start",
+            "android_params": [
+                "context"
+            ],
+            "description": "Keep the device key (Keystore vault) and the office address, start the background job that sends the business's SMS; off unless features.sms_send"
+        },
+        {
+            "name": "Messages.Work",
+            "android": "com.rishadblack.plugins.sylloo_app_native.MessagesFunctions.Work",
+            "android_params": [
+                "context"
+            ],
+            "description": "Wake the background SMS job now; off unless features.sms_send"
+        },
+        {
+            "name": "Messages.Stop",
+            "android": "com.rishadblack.plugins.sylloo_app_native.MessagesFunctions.Stop",
+            "android_params": [
+                "context"
+            ],
+            "description": "Stop the background SMS job and forget its key, settings and counts"
+        },
+        {
+            "name": "Messages.Status",
+            "android": "com.rishadblack.plugins.sylloo_app_native.MessagesFunctions.Status",
+            "android_params": [
+                "context"
+            ],
+            "description": "What the phone knows now: online, can_send, the SIM service, sent and failed today; off unless features.sms_send"
+        },
+        {
+            "name": "Notice.Schedule",
+            "android": "com.rishadblack.plugins.sylloo_app_native.NoticeFunctions.Schedule",
+            "android_params": [
+                "context"
+            ],
+            "description": "Show a timed notice at its minute by itself (also offline, app closed, after a restart), with Call and Later; off unless features.notice_schedule"
+        },
+        {
+            "name": "Notice.Cancel",
+            "android": "com.rishadblack.plugins.sylloo_app_native.NoticeFunctions.Cancel",
+            "android_params": [
+                "context"
+            ],
+            "description": "Take away one timed notice (id) or all of a group (group); off unless features.notice_schedule"
+        },
+        {
+            "name": "Notice.Opened",
+            "android": "com.rishadblack.plugins.sylloo_app_native.NoticeFunctions.Opened",
+            "android_params": [
+                "context"
+            ],
+            "description": "What the tapped timed notice opens (open, open_id, action open|call), once (also sent as NoticeOpened)"
+        },
+        {
+            "name": "Calls.Recent",
+            "android": "com.rishadblack.plugins.sylloo_app_native.CallFunctions.Recent",
+            "android_params": [
+                "context"
+            ],
+            "description": "The work calls of the call list after the last read: only calls whose number ends in one of the app's compare keys; off unless features.calls_recent"
+        },
+        {
+            "name": "Calls.Ended",
+            "android": "com.rishadblack.plugins.sylloo_app_native.CallFunctions.Ended",
+            "android_params": [
+                "context"
+            ],
+            "description": "Wake the app's background command a few seconds after a call ends, also with the app closed (on / off); off unless features.calls_ended"
+        },
+        {
+            "name": "Calls.Permission",
+            "android": "com.rishadblack.plugins.sylloo_app_native.CallFunctions.Permission",
+            "android_params": [
+                "context"
+            ],
+            "description": "Android's READ_CALL_LOG / READ_PHONE_STATE question for the switched-on call jobs; answer as CallsPermissionAnswered"
+        },
+        {
+            "name": "Calls.Status",
+            "android": "com.rishadblack.plugins.sylloo_app_native.CallFunctions.Status",
+            "android_params": [
+                "context"
+            ],
+            "description": "The call jobs' switches, their permissions and whether the end of a call wakes the app"
+        },
+        {
+            "name": "Calls.Folder",
+            "android": "com.rishadblack.plugins.sylloo_app_native.RecordingFunctions.Folder",
+            "android_params": [
+                "context"
+            ],
+            "description": "Android's folder chooser for the phone's call recordings folder (read grant of that folder only, kept), or forget it; answer as CallsFolderAnswered; off unless features.calls_recording"
+        },
+        {
+            "name": "Calls.FolderStatus",
+            "android": "com.rishadblack.plugins.sylloo_app_native.RecordingFunctions.FolderStatus",
+            "android_params": [
+                "context"
+            ],
+            "description": "Whether call recordings are switched on and a recordings folder is chosen (its name)"
+        },
+        {
+            "name": "Calls.Recording",
+            "android": "com.rishadblack.plugins.sylloo_app_native.RecordingFunctions.Recording",
+            "android_params": [
+                "context"
+            ],
+            "description": "One saved work call's recording found in the chosen folder, copied app-private (AAC re-wrapped as .mp4) with its size and SHA-256; off unless features.calls_recording"
+        },
+        {
+            "name": "Calls.RecordingDrop",
+            "android": "com.rishadblack.plugins.sylloo_app_native.RecordingFunctions.RecordingDrop",
+            "android_params": [
+                "context"
+            ],
+            "description": "Remove the app's copy of a call's recording"
         }
     ],
     "android": {
@@ -210,7 +370,11 @@
                 "com.google.guava:guava:33.3.1-android",
                 "com.google.zxing:core:3.5.3",
                 "androidx.work:work-runtime-ktx:2.10.0",
-                "com.google.firebase:firebase-messaging:24.1.0"
+                "com.google.firebase:firebase-messaging:24.1.0",
+                "androidx.camera:camera-core:1.4.1",
+                "androidx.camera:camera-camera2:1.4.1",
+                "androidx.camera:camera-lifecycle:1.4.1",
+                "androidx.camera:camera-view:1.4.1"
             ]
         },
         "activities": [
@@ -275,7 +439,12 @@
         "Rishadblack\\SyllooAppNative\\Events\\UpdateAnswered",
         "Rishadblack\\SyllooAppNative\\Events\\PrintAnswered",
         "Rishadblack\\SyllooAppNative\\Events\\ScanReceived",
-        "Rishadblack\\SyllooAppNative\\Events\\ScanCameraClosed"
+        "Rishadblack\\SyllooAppNative\\Events\\ScanCameraClosed",
+        "Rishadblack\\SyllooAppNative\\Events\\SmsAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\SmsPermissionAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\NoticeOpened",
+        "Rishadblack\\SyllooAppNative\\Events\\CallsPermissionAnswered",
+        "Rishadblack\\SyllooAppNative\\Events\\CallsFolderAnswered"
     ],
     "service_provider": "Rishadblack\\SyllooAppNative\\SyllooAppNativeServiceProvider",
     "hooks": {

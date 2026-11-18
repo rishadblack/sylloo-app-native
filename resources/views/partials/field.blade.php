@@ -1,6 +1,8 @@
 {{--
     One field of the base's view ($field), drawn natively by its type: `code`, `text`, `pin`, `pin_pad`, `tiles`,
     `select` (the same types the web face draws). Bound to `fields.<name>`; its error is $fieldErrors[<name>].
+    The text fields spell out what `native:model` would give: `native:model` can not take a Blade echo in its name (its
+    `:value` would read the key `fields.{{ $field->name }}` as written and stay empty, so a scanned code never showed).
 --}}
 @php
     $error = $fieldErrors[$field->name] ?? null;
@@ -11,13 +13,13 @@
     @case('code')
         <native:outlined-text-input class="w-full" :label="$field->label ?? ''" keyboard="number" max-length="19"
             :error="$error !== null" :supporting="$supporting"
-            native:model.debounce.300ms="fields.{{ $field->name }}" @submit="submit('{{ $field->name }}')" />
+            :value="$fields[$field->name] ?? ''" _change="__syncProperty('fields.{{ $field->name }}')" sync-mode="debounce" debounce-ms="300" @submit="submit('{{ $field->name }}')" />
         @break
 
     @case('pin')
         <native:outlined-text-input class="w-full" :label="$field->label ?? ''" keyboard="number" secure revealable :max-length="$pad['max']"
             :error="$error !== null" :supporting="$supporting"
-            native:model.debounce.300ms="fields.{{ $field->name }}" @submit="submit('{{ $field->name }}')" />
+            :value="$fields[$field->name] ?? ''" _change="__syncProperty('fields.{{ $field->name }}')" sync-mode="debounce" debounce-ms="300" @submit="submit('{{ $field->name }}')" />
         @break
 
     @case('pin_pad')
@@ -83,5 +85,5 @@
     @default
         <native:outlined-text-input class="w-full" :label="$field->label ?? ''"
             :error="$error !== null" :supporting="$supporting"
-            native:model.debounce.300ms="fields.{{ $field->name }}" @submit="submit('{{ $field->name }}')" />
+            :value="$fields[$field->name] ?? ''" _change="__syncProperty('fields.{{ $field->name }}')" sync-mode="debounce" debounce-ms="300" @submit="submit('{{ $field->name }}')" />
 @endswitch

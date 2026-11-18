@@ -229,8 +229,9 @@
       ],
       "allow_http": false,
       "show": false,
-      "decide": "leave",
-      "decide_redirect": "ended"
+      "decide": "ended",
+      "decide_redirect": "ended",
+      "note": "never shown and never sent to the browser: a new ticket (desktop: signIn)"
     },
     {
       "name": "the business root",
@@ -546,6 +547,111 @@
       "show": false,
       "decide": "leave",
       "decide_redirect": "ended"
+    },
+    {
+      "name": "the business's sign-in page under /member",
+      "url": "https://demo.sylloo.app/member/login",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "ended",
+      "decide_redirect": "ended"
+    },
+    {
+      "name": "the page's own Sign out",
+      "url": "https://demo.sylloo.app/member/theme/logout",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "sign_out",
+      "decide_redirect": "sign_out"
+    },
+    {
+      "name": "the member Sign out",
+      "url": "https://practice.sylloo.app/member/logout",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "sign_out",
+      "decide_redirect": "sign_out"
+    },
+    {
+      "name": "a page that only starts like login",
+      "url": "https://demo.sylloo.app/member/loginx",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": true,
+      "decide": "show",
+      "decide_redirect": "show"
+    },
+    {
+      "name": "a sign-in page of another site",
+      "url": "https://example.com/member/login",
+      "hosts": [
+        "demo.sylloo.app",
+        "practice.sylloo.app"
+      ],
+      "paths": [
+        "/member",
+        "/livewire",
+        "/build",
+        "/storage",
+        "/docs",
+        "/theme/locale",
+        "/favicon.ico"
+      ],
+      "allow_http": false,
+      "show": false,
+      "decide": "leave",
+      "decide_redirect": "leave"
     }
   ]
 }
